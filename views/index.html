@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتبة الطباعة - طلب جديد</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📄 مكتبة الطباعة</h1>
+            <p>اطبع مستنداتك بسهولة وأمان</p>
+        </header>
+
+        <main>
+            <form id="printingForm" class="printing-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="name">الاسم الكامل *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">رقم الهاتف *</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="file">رفع الملف *</label>
+                    <input type="file" id="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" required>
+                    <small>الحد الأقصى 40MB - PDF, Word, Excel, Images</small>
+                </div>
+
+                <div class="specs-group">
+                    <div class="form-group">
+                        <label>حجم الورق</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="paperSize" value="A4" checked> A4
+                            </label>
+                            <label>
+                                <input type="radio" name="paperSize" value="A5"> A5
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>نوع الطباعة</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="colorType" value="ملون" checked> ملون
+                            </label>
+                            <label>
+                                <input type="radio" name="colorType" value="أبيض وأسود"> أبيض وأسود
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="lamination" name="lamination"> مع تسليك (+3000 ليرة)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="price-section">
+                    <h3>الحساب النهائي</h3>
+                    <div id="priceDetails">
+                        <p>عدد الصفحات: <span id="pageCount">0</span></p>
+                        <p>عدد الوجوه: <span id="sideCount">0</span></p>
+                        <p>سعر الطباعة: <span id="printingPrice">0</span> ليرة</p>
+                        <p>التسليك: <span id="laminationPrice">0</span> ليرة</p>
+                        <p class="total-price">المجموع: <span id="totalPrice">0</span> ليرة</p>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">إرسال الطلب</button>
+            </form>
+        </main>
+
+        <footer>
+            <p>للدخول إلى لوحة التحكم <a href="/admin">اضغط هنا</a></p>
+        </footer>
+    </div>
+
+    <script src="/js/client.js"></script>
+</body>
+</html>
