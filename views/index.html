@@ -64,26 +64,32 @@
                         </div>
                     </div>
 
-                    <!-- مجموعة رفع الملف -->
-                    <div class="form-section">
-                        <div class="section-title">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <h3>رفع الملف</h3>
+<!-- مجموعة رفع الملف -->
+<div class="form-section">
+    <div class="section-title">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <h3>رفع الملف</h3>
+    </div>
+    
+                    <!-- التصحيح: استخدام label مباشرة مع input داخليه -->
+                    <label class="file-upload-area" id="fileUploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-file-upload"></i>
                         </div>
-                        
-                        <div class="file-upload-area" id="fileUploadArea">
-                            <div class="upload-icon">
-                                <i class="fas fa-file-upload"></i>
-                            </div>
-                            <div class="upload-text">
-                                <h4>اسحب وأفلت الملف هنا</h4>
-                                <p>أو انقر للاختيار</p>
-                                <small>PDF, Word, Excel, Images - الحد الأقصى 40MB</small>
-                            </div>
-                            <input type="file" id="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" required class="file-input">
+                        <div class="upload-text">
+                            <h4>انقر لاختيار الملف</h4>
+                            <p>اسحب وأفلت الملف هنا</p>
+                            <small>PDF, Word, Excel, Images - الحد الأقصى 40MB</small>
                         </div>
+                        <input type="file" id="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" required class="file-input">
+                    </label>
+                    
+                    <!-- عرض اسم الملف المختار -->
+                    <div id="fileNameDisplay" class="file-name-display" style="display: none;">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="selectedFileName">لم يتم اختيار ملف</span>
                     </div>
-
+                </div>
                     <!-- مجموعة مواصفات الطباعة -->
                     <div class="form-section">
                         <div class="section-title">

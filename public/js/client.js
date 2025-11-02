@@ -151,6 +151,7 @@ async function calculatePdfPages(file) {
 }
 
 // معالجة رفع الملف
+// معالجة رفع الملف - النسخة المحسنة
 fileInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -159,15 +160,22 @@ fileInput.addEventListener('change', async (e) => {
             alert('❌ حجم الملف كبير جداً! الحد الأقصى 40MB');
             fileInput.value = '';
             resetFileInfo();
+            hideFileName();
             return;
         }
 
+        // عرض اسم الملف المختار
+        showFileName(file.name);
+        
         const fileExt = file.name.split('.').pop().toLowerCase();
         
         try {
             if (fileExt === 'pdf') {
-                // حساب صفحات PDF
-                pageCount = await calculatePdfPages(file);
+                // حساب صفحات PDF بدقة
+                const fileURL = URL.createObjectURL(file);
+                const pdf = await pdfjsLib.getDocument(fileURL).promise;
+                pageCount = pdf.numPages;
+                URL.revokeObjectURL(fileURL);
                 isPdfFile = true;
                 pageInfoElement.textContent = `عدد الصفحات: ${pageCount}`;
                 updatePrice();
@@ -186,10 +194,70 @@ fileInput.addEventListener('change', async (e) => {
             console.error('Error processing file:', error);
             alert('❌ حدث خطأ في معالجة الملف: ' + error.message);
             resetFileInfo();
+            hideFileName();
         }
     }
 });
 
+// دالات مساعدة جديدة
+function showFileName(fileName) {
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const selectedFileName = document.getElementById('selectedFileName');
+    
+    selectedFileName.textContent = fileName;
+    fileNameDisplay.style.display = 'flex';
+}
+
+function hideFileName() {
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    fileNameDisplay.style.display = 'none';
+}
+
+// في دالة resetFileInfo، أضف:
+function resetFileInfo() {
+    pageCount = 0;
+    isPdfFile = false;
+    pageInfoElement.textContent = 'عدد الصفحات: --';
+    priceInfoElement.style.display = 'none';
+    whatsappInfoElement.style.display = 'none';
+    hideFileName(); // إخفاء عرض اسم الملف
+}
+// تحسين تجربة السحب والإفلات
+function initFileUpload() {
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileInput = document.querySelector('.file-input');
+    
+    // إزالة النقر المزدوج - لم نعد نحتاجه
+    // لأن الـ label الآن يغطي الـ input مباشرة
+    
+    // أحداث السحب والإفلات تبقى كما هي
+    fileUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.add('dragover');
+    });
+    
+    fileUploadArea.addEventListener('dragleave', () => {
+        fileUploadArea.classList.remove('dragover');
+    });
+    
+    fileUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            const event = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(event);
+        }
+    });
+}
+
+// في نهاية DOMContentLoaded، تأكد من استدعاء initFileUpload
+document.addEventListener('DOMContentLoaded', () => {
+    updatePrice();
+    initOptionButtons();
+    initFileUpload();
+    hideFileName(); // إخفاء عرض اسم الملف في البداية
+});
 // دالة مساعدة للحصول على اسم نوع الملف
 function getFileTypeName(ext) {
     const types = {
