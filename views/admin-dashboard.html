@@ -5,126 +5,272 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مكتبة الطباعة - لوحة التحكم</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .dashboard-header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        :root {
+            --primary-color: #2c5aa0;
+            --primary-dark: #1e3d72;
+            --gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tajawal', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+            direction: rtl;
+        }
+
+        /* الهيدر */
+        .admin-header {
+            background: var(--gradient);
             color: white;
-            padding: 20px 0;
-            margin-bottom: 30px;
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 20px;
         }
 
-        .stats-cards {
+        .header-title h1 {
+            margin: 0;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* الإحصائيات */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
         .stat-card {
             background: white;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
             text-align: center;
-            border-left: 4px solid #667eea;
+            border-top: 4px solid var(--primary-color);
+        }
+
+        .stat-card i {
+            font-size: 1.8em;
+            color: var(--primary-color);
+            margin-bottom: 10px;
         }
 
         .stat-number {
-            font-size: 2em;
+            font-size: 1.8em;
             font-weight: bold;
             color: #2c3e50;
-            margin: 10px 0;
+            margin: 5px 0;
         }
 
-        .orders-table {
+        .stat-label {
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        /* حاوية الطلبات */
+        .orders-section {
             background: white;
-            border-radius: 10px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
             overflow: hidden;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: right;
+        .section-header {
+            padding: 20px;
             border-bottom: 1px solid #eee;
+            background: #f8f9fa;
         }
 
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
+        .section-header h2 {
+            margin: 0;
             color: #2c3e50;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        tr:hover {
-            background: #f8f9fa;
+        /* بطاقات الطلبات - متراصة تحت بعض */
+        .orders-list {
+            padding: 0;
+        }
+
+        .order-item {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            transition: background-color 0.2s ease;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .order-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* رأس البطاقة */
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .order-id {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1em;
+        }
+
+        .order-date {
+            font-size: 0.8em;
+            color: #7f8c8d;
+        }
+
+        /* معلومات العميل */
+        .customer-info {
+            margin-bottom: 15px;
+        }
+
+        .customer-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        .customer-phone {
+            color: #666;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* الملف */
+        .file-info {
+            margin-bottom: 15px;
         }
 
         .file-link {
-            color: #667eea;
+            color: var(--primary-color);
             text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
         }
 
         .file-link:hover {
             text-decoration: underline;
         }
 
-        .delete-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
+        /* المواصفات */
+        .specs-info {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
         }
 
-        .delete-btn:hover {
-            background: #c0392b;
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
         }
 
-        .no-orders {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
         }
 
-        .logout-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
+        .spec-item i {
+            color: var(--primary-color);
+            width: 16px;
         }
 
-        .logout-btn:hover {
-            background: #c0392b;
+        /* السعر والحالة */
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
+        .price-info {
+            font-weight: bold;
+            color: #27ae60;
+            font-size: 1.1em;
+        }
+
+        .whatsapp-notice {
+            color: #e67e22;
+            background: #fff9e6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 12px;
+            border-radius: 15px;
             font-size: 0.8em;
             font-weight: bold;
         }
@@ -138,53 +284,224 @@
             background: #d1ecf1;
             color: #0c5460;
         }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        /* حالات خاصة */
+        .no-orders {
+            text-align: center;
+            padding: 50px 20px;
+            color: #7f8c8d;
+        }
+
+        .no-orders i {
+            font-size: 3em;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px 20px;
+            color: #7f8c8d;
+        }
+
+        .loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* تحسينات للجوال */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .order-item {
+                padding: 15px;
+            }
+
+            .specs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .order-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .status-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+
+        /* تحسينات للتابلت */
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="dashboard-header">
+    <div class="admin-container">
+        <!-- الهيدر -->
+        <header class="admin-header">
             <div class="header-content">
-                <div>
-                    <h1>🛠️ لوحة تحكم الإدارة</h1>
-                    <p>إدارة طلبات الطباعة</p>
+                <div class="header-title">
+                    <h1><i class="fas fa-tachometer-alt"></i> لوحة تحكم الإدارة</h1>
+                    <p>إدارة طلبات الطباعة - مكتبة النخبة</p>
                 </div>
-                <div>
-                    <button id="logoutBtn" class="logout-btn">تسجيل الخروج</button>
-                </div>
+                <button id="logoutBtn" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    تسجيل الخروج
+                </button>
             </div>
-        </div>
+        </header>
 
-        <div class="stats-cards">
+        <!-- الإحصائيات -->
+        <div class="stats-grid">
             <div class="stat-card">
-                <div>إجمالي الطلبات</div>
+                <i class="fas fa-clipboard-list"></i>
                 <div class="stat-number" id="totalOrders">0</div>
+                <div class="stat-label">إجمالي الطلبات</div>
             </div>
             <div class="stat-card">
-                <div>طلبات اليوم</div>
+                <i class="fas fa-calendar-day"></i>
                 <div class="stat-number" id="todayOrders">0</div>
+                <div class="stat-label">طلبات اليوم</div>
             </div>
             <div class="stat-card">
-                <div>إجمالي الإيرادات</div>
+                <i class="fas fa-money-bill-wave"></i>
                 <div class="stat-number" id="totalRevenue">0</div>
-                <div>ليرة سورية</div>
+                <div class="stat-label">إجمالي الإيرادات</div>
             </div>
             <div class="stat-card">
-                <div>الطلبات قيد الانتظار</div>
+                <i class="fas fa-clock"></i>
                 <div class="stat-number" id="pendingOrders">0</div>
+                <div class="stat-label">قيد الانتظار</div>
             </div>
         </div>
 
-        <div class="orders-table">
-            <div style="padding: 20px; border-bottom: 1px solid #eee;">
-                <h2 style="margin: 0; color: #2c3e50;">الطلبات الحديثة</h2>
+        <!-- قسم الطلبات -->
+        <section class="orders-section">
+            <div class="section-header">
+                <h2><i class="fas fa-list-alt"></i> الطلبات الحديثة</h2>
             </div>
             
             <div id="ordersContainer">
-                <div class="loading">جاري تحميل الطلبات...</div>
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>جاري تحميل الطلبات...</div>
+                </div>
             </div>
-        </div>
+        </section>
     </div>
+<!-- أزرار التحكم بالملفات -->
+<div style="margin: 20px 0; text-align: center;">
+    <button onclick="cleanupFiles()" class="cleanup-btn" style="
+        background: #f39c12;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+    ">
+        <i class="fas fa-broom"></i>
+        تنظيف الملفات القديمة
+    </button>
+    
+    <button onclick="checkStorage()" class="storage-btn" style="
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+    ">
+        <i class="fas fa-hdd"></i>
+        فحص المساحة
+    </button>
+</div>
 
+<script>
+// تنظيف الملفات يدوياً
+async function cleanupFiles() {
+    if (!confirm('هل تريد تنظيف الملفات الأقدم من أسبوع؟')) return;
+    
+    try {
+        const response = await fetch('/api/admin/cleanup', {
+            method: 'POST'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`✅ ${result.message}\nتم حذف ${result.deletedCount} ملف`);
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        alert('❌ حدث خطأ أثناء التنظيف');
+    }
+}
+
+// فحص المساحة
+async function checkStorage() {
+    try {
+        const response = await fetch('/api/admin/storage');
+        const result = await response.json();
+        
+        alert(`💾 المساحة المستخدمة: ${result.usedSpace}\n📁 عدد الملفات: ${result.fileCount}`);
+    } catch (error) {
+        alert('❌ حدث خطأ في فحص المساحة');
+    }
+}
+</script>
     <script src="/js/admin.js"></script>
 </body>
 </html>

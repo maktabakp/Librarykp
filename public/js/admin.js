@@ -30,10 +30,12 @@ async function loadOrders() {
 }
 
 // عرض الطلبات في الجدول
+// عرض الطلبات في بطاقات متراصة
 function displayOrders() {
-    if (orders.length === 0) {
+    if (!orders || orders.length === 0) {
         ordersContainer.innerHTML = `
             <div class="no-orders">
+                <i class="fas fa-inbox"></i>
                 <h3>لا توجد طلبات حالياً</h3>
                 <p>سيتم عرض الطلبات هنا عندما يقوم العملاء بتقديم طلبات جديدة</p>
             </div>
@@ -42,51 +44,89 @@ function displayOrders() {
     }
 
     const ordersHTML = `
-        <table>
-            <thead>
-                <tr>
-                    <th>رقم الطلب</th>
-                    <th>الاسم</th>
-                    <th>رقم الهاتف</th>
-                    <th>الملف</th>
-                    <th>المواصفات</th>
-                    <th>السعر</th>
-                    <th>وقت الطلب</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${orders.map(order => `
-                    <tr>
-                        <td>#${order.id}</td>
-                        <td>${order.name}</td>
-                        <td>${order.phone}</td>
-                        <td>
-                            <a href="/api/orders/download/${order.id}" class="file-link" target="_blank" download="${order.fileName}">
-                                📄 ${order.fileName}
-                            </a>
-                        </td>                        <td>
-                            ${order.paperSize} - ${order.colorType}
-                            ${order.lamination ? ' - مع تسليك' : ''}
-                            <br>
-                            <small>${order.pageCount} صفحة</small>
-                        </td>
-                        <td>${order.totalPrice.toLocaleString()} ل.س</td>
-                        <td>${formatDate(new Date(order.timestamp))}</td>
-                        <td>
+        <div class="orders-list">
+            ${orders.map(order => `
+                <div class="order-item">
+                    <!-- رأس البطاقة -->
+                    <div class="order-header">
+                        <div class="order-id">#${order.id}</div>
+                        <div class="order-date">${formatDate(new Date(order.timestamp))}</div>
+                    </div>
+                    
+                    <!-- معلومات العميل -->
+                    <div class="customer-info">
+                        <div class="customer-name">
+                            <i class="fas fa-user"></i>
+                            ${order.name}
+                        </div>
+                        <div class="customer-phone">
+                            <i class="fas fa-phone"></i>
+                            ${order.phone}
+                        </div>
+                    </div>
+                    
+                    <!-- الملف -->
+                    <div class="file-info">
+                        <a href="/api/orders/download/${order.id}" class="file-link" target="_blank">
+                            <i class="fas fa-file-download"></i>
+                            اضغط لتنزيل الملف
+                        </a>
+                    </div>
+                    
+                    <!-- المواصفات -->
+                    <div class="specs-info">
+                        <div class="specs-grid">
+                            <div class="spec-item">
+                                <i class="fas fa-expand-alt"></i>
+                                <span>${order.paperSize}</span>
+                            </div>
+                            <div class="spec-item">
+                                <i class="fas fa-palette"></i>
+                                <span>${order.colorType}</span>
+                            </div>
+                            ${order.lamination ? `
+                                <div class="spec-item">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <span>مع التسليك</span>
+                                </div>
+                            ` : ''}
+                            <div class="spec-item">
+                                <i class="fas fa-file"></i>
+                                <span>${order.pageCount || 0} صفحة</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- السعر والحالة -->
+                    <div class="order-footer">
+                        <div class="price-info">
+                            ${order.isPdf ? 
+                                `${order.totalPrice ? order.totalPrice.toLocaleString() : '0'} ل.س` : 
+                                `<div class="whatsapp-notice">
+                                    <i class="fab fa-whatsapp"></i>
+                                    سيتم التواصل لتحديد السعر
+                                </div>`
+                            }
+                        </div>
+                        
+                        <div class="status-actions">
+                            <span class="status-badge ${order.needsWhatsappPrice ? 'status-pending' : 'status-completed'}">
+                                <i class="fas ${order.needsWhatsappPrice ? 'fa-clock' : 'fa-check'}"></i>
+                                ${order.needsWhatsappPrice ? 'بانتظار التواصل' : 'مكتمل'}
+                            </span>
                             <button class="delete-btn" onclick="deleteOrder(${order.id})">
+                                <i class="fas fa-trash"></i>
                                 حذف
                             </button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
     `;
     
     ordersContainer.innerHTML = ordersHTML;
 }
-
 // تحديث الإحصائيات
 function updateStats() {
     const totalOrders = orders.length;

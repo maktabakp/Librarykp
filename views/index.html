@@ -5,81 +5,221 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مكتبة الطباعة - طلب جديد</title>
     <link rel="stylesheet" href="/css/style.css">
+    <!-- إضافة Font Awesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- إضافة PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📄 مكتبة الطباعة</h1>
-            <p>اطبع مستنداتك بسهولة وأمان</p>
+    <div class="mobile-container">
+        <!-- الهيدر المحسن -->
+        <header class="premium-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-print"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>مكتبة النخبة للطباعة</h1>
+                        <p>جودة · دقة · سرعة في التنفيذ</p>
+                    </div>
+                </div>
+                <div class="header-badge">
+                    <i class="fas fa-star"></i>
+                    <span>خدمة متميزة</span>
+                </div>
+            </div>
         </header>
 
-        <main>
-            <form id="printingForm" class="printing-form" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="name">الاسم الكامل *</label>
-                    <input type="text" id="name" name="name" required>
+        <main class="main-content">
+            <!-- بطاقة النموذج الرئيسية -->
+            <div class="form-card">
+                <div class="card-header">
+                    <i class="fas fa-file-alt"></i>
+                    <h2>طلب طباعة جديد</h2>
                 </div>
 
-                <div class="form-group">
-                    <label for="phone">رقم الهاتف *</label>
-                    <input type="tel" id="phone" name="phone" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="file">رفع الملف *</label>
-                    <input type="file" id="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" required>
-                    <small>الحد الأقصى 40MB - PDF, Word, Excel, Images</small>
-                </div>
-
-                <div class="specs-group">
-                    <div class="form-group">
-                        <label>حجم الورق</label>
-                        <div class="radio-group">
-                            <label>
-                                <input type="radio" name="paperSize" value="A4" checked> A4
+                <form id="printingForm" class="printing-form" enctype="multipart/form-data">
+                    <!-- مجموعة المعلومات الشخصية -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-user-circle"></i>
+                            <h3>المعلومات الشخصية</h3>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="name" class="input-label">
+                                <i class="fas fa-signature"></i>
+                                الاسم الكامل
                             </label>
-                            <label>
-                                <input type="radio" name="paperSize" value="A5"> A5
+                            <input type="text" id="name" name="name" required class="modern-input" placeholder="أدخل اسمك الكامل">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone" class="input-label">
+                                <i class="fas fa-mobile-alt"></i>
+                                رقم الهاتف
                             </label>
+                            <input type="tel" id="phone" name="phone" required class="modern-input" placeholder="09xxxxxxxx">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>نوع الطباعة</label>
-                        <div class="radio-group">
-                            <label>
-                                <input type="radio" name="colorType" value="ملون" checked> ملون
-                            </label>
-                            <label>
-                                <input type="radio" name="colorType" value="أبيض وأسود"> أبيض وأسود
-                            </label>
+                    <!-- مجموعة رفع الملف -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3>رفع الملف</h3>
+                        </div>
+                        
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <div class="upload-icon">
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <div class="upload-text">
+                                <h4>اسحب وأفلت الملف هنا</h4>
+                                <p>أو انقر للاختيار</p>
+                                <small>PDF, Word, Excel, Images - الحد الأقصى 40MB</small>
+                            </div>
+                            <input type="file" id="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" required class="file-input">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="lamination" name="lamination"> مع تسليك (+3000 ليرة)
-                        </label>
-                    </div>
-                </div>
+                    <!-- مجموعة مواصفات الطباعة -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-cogs"></i>
+                            <h3>مواصفات الطباعة</h3>
+                        </div>
 
-                <div class="price-section">
-                    <h3>الحساب النهائي</h3>
-                    <div id="priceDetails">
-                        <p>عدد الصفحات: <span id="pageCount">0</span></p>
-                        <p>عدد الوجوه: <span id="sideCount">0</span></p>
-                        <p>سعر الطباعة: <span id="printingPrice">0</span> ليرة</p>
-                        <p>التسليك: <span id="laminationPrice">0</span> ليرة</p>
-                        <p class="total-price">المجموع: <span id="totalPrice">0</span> ليرة</p>
-                    </div>
-                </div>
+                        <div class="specs-grid">
+                            <!-- حجم الورق -->
+                            <div class="spec-card">
+                                <div class="spec-icon">
+                                    <i class="fas fa-expand-alt"></i>
+                                </div>
+                                <div class="spec-content">
+                                    <h4>حجم الورق</h4>
+                                    <div class="option-buttons">
+                                        <label class="option-btn active" data-value="A4">
+                                            <i class="fas fa-file"></i>
+                                            A4
+                                        </label>
+                                        <label class="option-btn" data-value="A5">
+                                            <i class="fas fa-file"></i>
+                                            A5
+                                        </label>
+                                    </div>
+                                    <input type="hidden" name="paperSize" value="A4" id="paperSize">
+                                </div>
+                            </div>
 
-                <button type="submit" class="submit-btn">إرسال الطلب</button>
-            </form>
+                            <!-- نوع الطباعة -->
+                            <div class="spec-card">
+                                <div class="spec-icon">
+                                    <i class="fas fa-palette"></i>
+                                </div>
+                                <div class="spec-content">
+                                    <h4>نوع الطباعة</h4>
+                                    <div class="option-buttons">
+                                        <label class="option-btn active" data-value="ملون">
+                                            <i class="fas fa-fill-drip"></i>
+                                            ملون
+                                        </label>
+                                        <label class="option-btn" data-value="أبيض وأسود">
+                                            <i class="fas fa-adjust"></i>
+                                            أبيض وأسود
+                                        </label>
+                                    </div>
+                                    <input type="hidden" name="colorType" value="ملون" id="colorType">
+                                </div>
+                            </div>
+
+                            <!-- إضافات -->
+                            <div class="spec-card">
+                                <div class="spec-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <div class="spec-content">
+                                    <h4>إضافات</h4>
+                                    <label class="checkbox-modern">
+                                        <input type="checkbox" id="lamination" name="lamination">
+                                        <span class="checkmark"></span>
+                                        <i class="fas fa-shield-alt"></i>
+                                        تسليك واقي (+3000 ليرة)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- قسم الحساب -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-calculator"></i>
+                            <h3>معلومات الطلب</h3>
+                        </div>
+
+                        <div class="price-summary">
+                            <div class="summary-item" id="pageInfo">
+                                <div class="summary-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="summary-content">
+                                    <span class="summary-label">عدد الصفحات</span>
+                                    <span class="summary-value" id="pageCount">--</span>
+                                </div>
+                            </div>
+
+                            <div class="summary-item" id="priceInfo" style="display: none;">
+                                <div class="summary-icon">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div class="summary-content">
+                                    <span class="summary-label">السعر التقريبي</span>
+                                    <span class="summary-value price-amount" id="totalPrice">0 ل.س</span>
+                                </div>
+                            </div>
+
+                            <div class="summary-item whatsapp-info" id="whatsappInfo" style="display: none;">
+                                <div class="summary-icon">
+                                    <i class="fab fa-whatsapp"></i>
+                                </div>
+                                <div class="summary-content">
+                                    <span class="summary-label">معلومة مهمة</span>
+                                    <span class="summary-value">سيتم إرسال السعر عبر واتساب بعد مراجعة الملف</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- زر الإرسال -->
+                    <button type="submit" class="submit-btn premium-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>إرسال الطلب الآن</span>
+                        <div class="btn-shine"></div>
+                    </button>
+                </form>
+            </div>
         </main>
 
-        <footer>
-            <p>للدخول إلى لوحة التحكم <a href="/admin">اضغط هنا</a></p>
+        <!-- الفوتر -->
+        <footer class="premium-footer">
+            <div class="footer-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-clock"></i>
+                        <span>خدمة 24/7</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>أمان تام</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-bolt"></i>
+                        <span>تسليم سريع</span>
+                    </div>
+                </div>
+            </div>
         </footer>
     </div>
 
