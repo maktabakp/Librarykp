@@ -25,6 +25,149 @@ let hasLamination = false;
 let isPdfFile = false;
 let copies = 1;
 
+// كشف WebView وتطبيقات الهاتف
+function isMobileApp() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    return userAgent.includes('wv') || // Android WebView
+           userAgent.includes('webview') || 
+           userAgent.includes('mobile') ||
+           /android|iphone|ipad|ipod/.test(userAgent);
+}
+
+// حل خاص لـ WebView - إنشاء input file ديناميكي
+function createWebViewFileInput() {
+    // إزالة الـ event listeners القديمة
+    const newFileInput = document.createElement('input');
+    newFileInput.type = 'file';
+    newFileInput.id = 'file';
+    newFileInput.name = 'file';
+    newFileInput.accept = '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png';
+    newFileInput.style.display = 'none';
+    
+    // استبدال الـ input القديم
+    const oldFileInput = document.getElementById('file');
+    if (oldFileInput) {
+        oldFileInput.parentNode.replaceChild(newFileInput, oldFileInput);
+    }
+    
+    return newFileInput;
+}
+
+// تهيئة رفع الملفات لـ WebView
+function initWebViewFileUpload() {
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    
+    // إعادة إنشاء input file
+    const fileInput = createWebViewFileInput();
+    
+    // إضافة رسالة مساعدة للويب فيو
+    if (isMobileApp()) {
+        const helpText = document.createElement('div');
+        helpText.className = 'webview-help';
+        helpText.innerHTML = `
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 10px; margin-top: 10px; text-align: center;">
+                <i class="fas fa-info-circle" style="color: #856404;"></i>
+                <small style="color: #856404;">
+                    في بعض التطبيقات، قد تحتاج إلى اختيار "المستندات" أو "الملفات" بدلاً من الكاميرا
+                </small>
+            </div>
+        `;
+        fileUploadArea.parentNode.insertBefore(helpText, fileUploadArea.nextSibling);
+    }
+    
+    // تحسين event listeners للويب فيو
+    fileUploadArea.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // محاكاة click على input file
+        setTimeout(() => {
+            fileInput.click();
+        }, 100);
+    });
+    
+    // معالجة اختيار الملف
+    fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            handleFileSelection(this.files[0]);
+        }
+    });
+    
+    // تحسينات اللمس للهواتف
+    fileUploadArea.addEventListener('touchstart', function(e) {
+        this.style.background = '#667eea15';
+        this.style.borderColor = '#4c63af';
+    }, { passive: true });
+    
+    fileUploadArea.addEventListener('touchend', function(e) {
+        this.style.background = '#f8f9ff';
+        this.style.borderColor = '#667eea';
+    }, { passive: true });
+    
+    return fileInput;
+}
+
+// دالة معالجة اختيار الملف
+async function handleFileSelection(file) {
+    if (!file) return;
+    
+    // عرض اسم الملف
+    selectedFileName.textContent = file.name;
+    fileNameDisplay.style.display = 'flex';
+    
+    // إظهار تحميل
+    pageInfoElement.innerHTML = '<div style="color: #667eea; text-align: center;">جاري فحص الملف...</div>';
+    
+    if (file.size > 60 * 1024 * 1024) {
+        showMobileAlert('❌ حجم الملف كبير جداً! الحد الأقصى 60MB');
+        resetFileInfo();
+        return;
+    }
+
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    
+    if (fileExt === 'pdf') {
+        try {
+            pageCount = await getPdfPageCount(file);
+            isPdfFile = true;
+            
+            pageInfoElement.textContent = `عدد الصفحات: ${pageCount}`;
+            updatePrice();
+            
+            const pricePerSide = paperSize === 'A4' ? PRICES.A4 : PRICES.A5;
+            const pricePerCopy = (pageCount * 2 * pricePerSide) + (hasLamination ? PRICES.LAMINATION : 0);
+            const totalPrice = pricePerCopy * copies;
+            
+            let priceMessage = `✅ تم تحميل ملف PDF\n📄 الصفحات: ${pageCount}\n💰 السعر: ${totalPrice.toLocaleString()} ليرة`;
+            if (copies > 1) {
+                priceMessage += `\n📋 (${copies} نسخة)`;
+            }
+            
+            showMobileAlert(priceMessage);
+            
+        } catch (error) {
+            console.error('خطأ في حساب الصفحات:', error);
+            pageCount = Math.max(1, Math.floor(file.size / 100000));
+            isPdfFile = true;
+            pageInfoElement.textContent = `عدد الصفحات (تقديري): ${pageCount}`;
+            updatePrice();
+            
+            showMobileAlert(`⚠️ تم تحميل ملف PDF\n📄 الصفحات (تقديري): ${pageCount}`);
+        }
+    } else {
+        isPdfFile = false;
+        pageCount = 0;
+        pageInfoElement.textContent = 'نوع الملف: ' + getFileTypeName(fileExt);
+        updatePrice();
+        showMobileAlert(`✅ تم تحميل الملف\n📞 سيتم إعلامك بالسعر عبر واتساب`);
+    }
+}
+
+// دالة لعرض التنبيهات
+function showMobileAlert(message) {
+    alert(message);
+}
+
 // دالة التحقق من رقم الهاتف
 function validatePhone(phone) {
     const phoneRegex = /^09\d{8}$/;
@@ -48,150 +191,145 @@ function clearPhoneFromStorage() {
     localStorage.removeItem('userPhone');
 }
 
-// تحسينات رفع الملفات للهواتف
-function initMobileFileUpload() {
-    const fileUploadArea = document.getElementById('fileUploadArea');
-    
-    // منع السلوك الافتراضي لسحب الملفات
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        fileUploadArea.addEventListener(eventName, preventDefaults, false);
-    });
-    
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
+// تحميل الطلبات تلقائياً عند فتح الصفحة
+function autoLoadUserOrders() {
+    const savedPhone = getPhoneFromStorage();
+    if (savedPhone && validatePhone(savedPhone)) {
+        document.getElementById('phone').value = savedPhone;
+        loadUserOrders();
     }
-    
-    // تحسين التغذية البصرية للهواتف
-    ['dragenter', 'dragover'].forEach(eventName => {
-        fileUploadArea.addEventListener(eventName, highlight, false);
-    });
-    
-    ['dragleave', 'drop'].forEach(eventName => {
-        fileUploadArea.addEventListener(eventName, unhighlight, false);
-    });
-    
-    function highlight() {
-        fileUploadArea.style.background = '#667eea15';
-        fileUploadArea.style.borderColor = '#4c63af';
-    }
-    
-    function unhighlight() {
-        fileUploadArea.style.background = '#f8f9ff';
-        fileUploadArea.style.borderColor = '#667eea';
-    }
-    
-    // معالجة سحب وإفلات الملفات
-    fileUploadArea.addEventListener('drop', handleDrop, false);
-    
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        
-        if (files.length > 0) {
-            fileInput.files = files;
-            handleFileSelection(files[0]);
-        }
-    }
-    
-    // تحسين التعامل مع input file على الهواتف
-    fileInput.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
-    
-    fileInput.addEventListener('change', function(e) {
-        if (this.files && this.files[0]) {
-            handleFileSelection(this.files[0]);
-        }
-    });
-    
-    // إضافة تأثير اللمس للهواتف
-    let touchTimer;
-    fileUploadArea.addEventListener('touchstart', function() {
-        touchTimer = setTimeout(() => {
-            this.style.background = '#667eea15';
-        }, 100);
-    }, { passive: true });
-    
-    fileUploadArea.addEventListener('touchend', function() {
-        clearTimeout(touchTimer);
-        this.style.background = '#f8f9ff';
-    }, { passive: true });
-    
-    fileUploadArea.addEventListener('touchcancel', function() {
-        clearTimeout(touchTimer);
-        this.style.background = '#f8f9ff';
-    }, { passive: true });
 }
 
-// دالة منفصلة لمعالجة اختيار الملف
-async function handleFileSelection(file) {
-    if (!file) return;
-    
-    // عرض اسم الملف
-    selectedFileName.textContent = file.name;
-    fileNameDisplay.style.display = 'flex';
-    
-    // إظهار تحميل
-    pageInfoElement.innerHTML = '<div style="color: #667eea; text-align: center;">جاري فحص الملف...</div>';
-    
-    if (file.size > 60 * 1024 * 1024) {
-        showMobileAlert('❌ حجم الملف كبير جداً! الحد الأقصى 60MB');
-        fileInput.value = '';
-        fileNameDisplay.style.display = 'none';
-        resetFileInfo();
+// تحديث السعر عند تغيير الإعدادات
+function updatePrice() {
+    if (!isPdfFile) {
+        priceInfoElement.style.display = 'none';
+        whatsappInfoElement.style.display = 'block';
         return;
     }
 
-    const fileExt = file.name.split('.').pop().toLowerCase();
+    const pricePerSide = paperSize === 'A4' ? PRICES.A4 : PRICES.A5;
+    const sides = pageCount * 2;
+    const printingPrice = sides * pricePerSide;
+    const laminationPrice = hasLamination ? PRICES.LAMINATION : 0;
+    const pricePerCopy = printingPrice + laminationPrice;
+    const totalPrice = pricePerCopy * copies;
+
+    pageCountElement.textContent = pageCount;
+    totalPriceElement.textContent = totalPrice.toLocaleString() + ' ل.س';
     
-    if (fileExt === 'pdf') {
-        try {
-            pageCount = await getPdfPageCount(file);
-            isPdfFile = true;
-            
-            pageInfoElement.textContent = `عدد الصفحات: ${pageCount}`;
-            updatePrice();
-            
-            // رسالة تأكيد للهواتف
-            const pricePerSide = paperSize === 'A4' ? PRICES.A4 : PRICES.A5;
-            const pricePerCopy = (pageCount * 2 * pricePerSide) + (hasLamination ? PRICES.LAMINATION : 0);
-            const totalPrice = pricePerCopy * copies;
-            
-            let priceMessage = `✅ تم تحميل ملف PDF\n📄 الصفحات: ${pageCount}\n💰 السعر: ${totalPrice.toLocaleString()} ليرة`;
-            if (copies > 1) {
-                priceMessage += `\n📋 (${copies} نسخة)`;
-            }
-            
-            showMobileAlert(priceMessage);
-            
-        } catch (error) {
-            console.error('خطأ في حساب الصفحات:', error);
-            // Fallback للتقدير
-            pageCount = Math.max(1, Math.floor(file.size / 100000));
-            isPdfFile = true;
-            pageInfoElement.textContent = `عدد الصفحات (تقديري): ${pageCount}`;
-            updatePrice();
-            
-            showMobileAlert(`⚠️ تم تحميل ملف PDF\n📄 الصفحات (تقديري): ${pageCount}\n💡 للتحديد الدقيق استخدم متصفحاً آخر`);
+    if (copies > 1) {
+        const copiesInfo = document.getElementById('copiesInfo') || document.createElement('div');
+        copiesInfo.id = 'copiesInfo';
+        copiesInfo.style.cssText = 'font-size: 0.9em; color: #666; margin-top: 5px;';
+        copiesInfo.innerHTML = `(${copies} نسخة × ${pricePerCopy.toLocaleString()} ل.س)`;
+        
+        if (!totalPriceElement.parentNode.querySelector('#copiesInfo')) {
+            totalPriceElement.parentNode.appendChild(copiesInfo);
         }
     } else {
-        isPdfFile = false;
-        pageCount = 0;
-        pageInfoElement.textContent = 'نوع الملف: ' + getFileTypeName(fileExt);
-        updatePrice();
-        showMobileAlert(`✅ تم تحميل الملف\n📞 سيتم إعلامك بالسعر عبر واتساب\n💰 سعر الوجه الواحد: 100 ليرة`);
+        const copiesInfo = document.getElementById('copiesInfo');
+        if (copiesInfo) copiesInfo.remove();
     }
+    
+    priceInfoElement.style.display = 'flex';
+    whatsappInfoElement.style.display = 'none';
 }
 
-// دالة لعرض التنبيهات بشكل أفضل على الهواتف
-function showMobileAlert(message) {
-    // استخدام alert عادي مع إضافة مسافات للقراءة
-    const formattedMessage = message.split('\n').map(line => 
-        line.trim()
-    ).join('\n\n');
+// استماع لتغيير عدد النسخ
+if (copiesInput) {
+    copiesInput.addEventListener('change', (e) => {
+        copies = parseInt(e.target.value) || 1;
+        if (copies < 1) copies = 1;
+        if (copies > 100) copies = 100;
+        e.target.value = copies;
+        updatePrice();
+    });
     
-    alert(formattedMessage);
+    copiesInput.addEventListener('blur', (e) => {
+        if (!e.target.value || e.target.value < 1) {
+            e.target.value = 1;
+            copies = 1;
+            updatePrice();
+        }
+    });
+}
+
+// استماع لتغيير حجم الورق ونوع الطباعة
+document.querySelectorAll('.option-btn[data-value]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const parent = e.target.closest('.option-buttons');
+        parent.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+        
+        e.target.classList.add('active');
+        
+        if (e.target.closest('.spec-content').querySelector('h4').textContent === 'حجم الورق') {
+            paperSize = e.target.getAttribute('data-value');
+            document.getElementById('paperSize').value = paperSize;
+        } else {
+            colorType = e.target.getAttribute('data-value');
+            document.getElementById('colorType').value = colorType;
+        }
+        
+        updatePrice();
+    });
+});
+
+// استماع للتسليك
+document.getElementById('lamination').addEventListener('change', (e) => {
+    hasLamination = e.target.checked;
+    updatePrice();
+});
+
+// دالة حساب صفحات PDF
+async function getPdfPageCount(file) {
+    return new Promise((resolve, reject) => {
+        const fileURL = URL.createObjectURL(file);
+        
+        pdfjsLib.getDocument({
+            url: fileURL,
+            disableFontFace: true,
+            disableStream: true,
+            disableAutoFetch: true
+        }).promise
+            .then(pdf => {
+                const numPages = pdf.numPages;
+                URL.revokeObjectURL(fileURL);
+                resolve(numPages);
+            })
+            .catch(error => {
+                URL.revokeObjectURL(fileURL);
+                reject(error);
+            });
+    });
+}
+
+// دالة مساعدة للحصول على اسم نوع الملف
+function getFileTypeName(ext) {
+    const types = {
+        'doc': 'Word',
+        'docx': 'Word',
+        'xls': 'Excel', 
+        'xlsx': 'Excel',
+        'jpg': 'صورة',
+        'jpeg': 'صورة',
+        'png': 'صورة'
+    };
+    return types[ext] || ext.toUpperCase();
+}
+
+// إعادة تعيين معلومات الملف
+function resetFileInfo() {
+    pageCount = 0;
+    isPdfFile = false;
+    pageInfoElement.textContent = 'عدد الصفحات: --';
+    priceInfoElement.style.display = 'none';
+    whatsappInfoElement.style.display = 'none';
+    fileNameDisplay.style.display = 'none';
+    copies = 1;
+    if (copiesInput) copiesInput.value = 1;
+    const copiesInfo = document.getElementById('copiesInfo');
+    if (copiesInfo) copiesInfo.remove();
 }
 
 // دالة جلب الطلبات من السيرفر
@@ -253,10 +391,6 @@ function displayUserOrders(orders) {
                 <p><i class="fas fa-file-alt"></i> <strong>الصفحات:</strong> ${order.pageCount} صفحة</p>
                 <p><i class="fas fa-copy"></i> <strong>النسخ:</strong> ${order.copies || 1} نسخة</p>
                 <p><i class="fas fa-money-bill"></i> <strong>السعر:</strong> ${order.totalPrice ? order.totalPrice.toLocaleString() + ' ل.س' : 'يحدد لاحقاً'}</p>
-                <p style="color: #666; font-size: 0.8em; margin-top: 10px;">
-                    <i class="fas fa-info-circle"></i>
-                    عندما يصبح طلبك جاهزاً ستتغير جملة قيد الطباعة الى تم التجهيز 
-                </p>
             </div>
         </div>
     `).join('');
@@ -288,160 +422,13 @@ function logoutUser() {
     }
 }
 
-// تحميل الطلبات تلقائياً عند فتح الصفحة
-function autoLoadUserOrders() {
-    const savedPhone = getPhoneFromStorage();
-    if (savedPhone && validatePhone(savedPhone)) {
-        document.getElementById('phone').value = savedPhone;
-        loadUserOrders();
-    }
-}
-
-// تحديث السعر عند تغيير الإعدادات
-function updatePrice() {
-    if (!isPdfFile) {
-        priceInfoElement.style.display = 'none';
-        whatsappInfoElement.style.display = 'block';
-        return;
-    }
-
-    const pricePerSide = paperSize === 'A4' ? PRICES.A4 : PRICES.A5;
-    const sides = pageCount * 2;
-    const printingPrice = sides * pricePerSide;
-    const laminationPrice = hasLamination ? PRICES.LAMINATION : 0;
-    const pricePerCopy = printingPrice + laminationPrice;
-    const totalPrice = pricePerCopy * copies;
-
-    pageCountElement.textContent = pageCount;
-    totalPriceElement.textContent = totalPrice.toLocaleString() + ' ل.س';
-    
-    // إضافة معلومات النسخ إذا كان أكثر من نسخة
-    if (copies > 1) {
-        const copiesInfo = document.getElementById('copiesInfo') || document.createElement('div');
-        copiesInfo.id = 'copiesInfo';
-        copiesInfo.style.cssText = 'font-size: 0.9em; color: #666; margin-top: 5px;';
-        copiesInfo.innerHTML = `(${copies} نسخة × ${pricePerCopy.toLocaleString()} ل.س)`;
-        
-        if (!totalPriceElement.parentNode.querySelector('#copiesInfo')) {
-            totalPriceElement.parentNode.appendChild(copiesInfo);
-        }
-    } else {
-        const copiesInfo = document.getElementById('copiesInfo');
-        if (copiesInfo) copiesInfo.remove();
-    }
-    
-    priceInfoElement.style.display = 'flex';
-    whatsappInfoElement.style.display = 'none';
-}
-
-// استماع لتغيير عدد النسخ
-if (copiesInput) {
-    copiesInput.addEventListener('change', (e) => {
-        copies = parseInt(e.target.value) || 1;
-        if (copies < 1) copies = 1;
-        if (copies > 100) copies = 100;
-        e.target.value = copies;
-        updatePrice();
-    });
-    
-    copiesInput.addEventListener('blur', (e) => {
-        if (!e.target.value || e.target.value < 1) {
-            e.target.value = 1;
-            copies = 1;
-            updatePrice();
-        }
-    });
-}
-
-// استماع لتغيير حجم الورق
-document.querySelectorAll('.option-btn[data-value]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        // إزالة النشاط من جميع الأزرار في المجموعة
-        const parent = e.target.closest('.option-buttons');
-        parent.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
-        
-        // تفعيل الزر المختار
-        e.target.classList.add('active');
-        
-        // تحديث القيمة
-        if (e.target.closest('.spec-content').querySelector('h4').textContent === 'حجم الورق') {
-            paperSize = e.target.getAttribute('data-value');
-            document.getElementById('paperSize').value = paperSize;
-        } else {
-            colorType = e.target.getAttribute('data-value');
-            document.getElementById('colorType').value = colorType;
-        }
-        
-        updatePrice();
-    });
-});
-
-// استماع للتسليك
-document.getElementById('lamination').addEventListener('change', (e) => {
-    hasLamination = e.target.checked;
-    updatePrice();
-});
-
-// دالة جديدة لحساب عدد صفحات PDF باستخدام pdf.js مع تحسينات للأداء
-async function getPdfPageCount(file) {
-    return new Promise((resolve, reject) => {
-        const fileURL = URL.createObjectURL(file);
-        
-        // إعدادات محسنة للهواتف
-        const loadingTask = pdfjsLib.getDocument({
-            url: fileURL,
-            disableFontFace: true, // تحسين الأداء
-            disableStream: true,
-            disableAutoFetch: true
-        });
-        
-        loadingTask.promise
-            .then(pdf => {
-                const numPages = pdf.numPages;
-                URL.revokeObjectURL(fileURL); // تحرير الذاكرة
-                resolve(numPages);
-            })
-            .catch(error => {
-                URL.revokeObjectURL(fileURL);
-                reject(error);
-            });
-    });
-}
-
-// دالة مساعدة للحصول على اسم نوع الملف
-function getFileTypeName(ext) {
-    const types = {
-        'doc': 'Word',
-        'docx': 'Word',
-        'xls': 'Excel', 
-        'xlsx': 'Excel',
-        'jpg': 'صورة',
-        'jpeg': 'صورة',
-        'png': 'صورة'
-    };
-    return types[ext] || ext.toUpperCase();
-}
-
-// إعادة تعيين معلومات الملف
-function resetFileInfo() {
-    pageCount = 0;
-    isPdfFile = false;
-    pageInfoElement.textContent = 'عدد الصفحات: --';
-    priceInfoElement.style.display = 'none';
-    whatsappInfoElement.style.display = 'none';
-    fileNameDisplay.style.display = 'none';
-    copies = 1;
-    if (copiesInput) copiesInput.value = 1;
-    const copiesInfo = document.getElementById('copiesInfo');
-    if (copiesInfo) copiesInfo.remove();
-}
-
 // معالجة إرسال النموذج
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const name = document.getElementById('name').value.trim();
     const phone = document.getElementById('phone').value.trim();
+    const fileInput = document.getElementById('file');
     const file = fileInput.files[0];
 
     if (!name || !phone || !file) {
@@ -454,7 +441,6 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    // حفظ رقم الهاتف في localStorage
     savePhoneToStorage(phone);
 
     const submitBtn = form.querySelector('.submit-btn');
@@ -471,7 +457,7 @@ form.addEventListener('submit', async (e) => {
         formData.append('colorType', colorType);
         formData.append('lamination', hasLamination);
         formData.append('clientPageCount', pageCount);
-        formData.append('copies', copies); // ✨ إرسال عدد النسخ
+        formData.append('copies', copies);
         
         const response = await fetch('/api/orders/upload', {
             method: 'POST',
@@ -490,25 +476,18 @@ form.addEventListener('submit', async (e) => {
                 
                 message += `\n💰 السعر النهائي: ${totalPrice.toLocaleString()} ليرة`;
                 if (copies > 1) {
-                    message += `\n📋 (${copies} نسخة × ${pricePerCopy.toLocaleString()} ليرة للنسخة)`;
+                    message += `\n📋 (${copies} نسخة)`;
                 }
             } else {
-                message += `\n💡 لا يمكن تحديد السعر بدقة لأن الملف ليس بصيغة pdf`;
                 message += `\n📞 سيتم اعلامك بالسعر عبر واتساب`;
-                message += `\n💰 سعر وجه الورقة الواحد : 100 ليرة سورية`;
-                if (copies > 1) {
-                    message += `\n📋 عدد النسخ: ${copies} نسخة`;
-                }
             }
 
             showMobileAlert(message);
             
-            // إعادة تعيين الفورم
             document.getElementById('name').value = '';
             fileInput.value = '';
             resetFileInfo();
             
-            // تحميل الطلبات الجديدة
             setTimeout(loadUserOrders, 1000);
         } else {
             throw new Error(result.message || 'حدث خطأ أثناء الإرسال');
@@ -522,7 +501,7 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-// عند تغيير رقم الهاتف، حفظ وتحمل الطلبات تلقائياً
+// عند تغيير رقم الهاتف
 document.getElementById('phone').addEventListener('blur', function() {
     const phone = this.value.trim();
     if (validatePhone(phone)) {
@@ -531,7 +510,7 @@ document.getElementById('phone').addEventListener('blur', function() {
     }
 });
 
-// عند التركيز على حقل الهاتف، تحميل الرقم المحفوظ
+// عند التركيز على حقل الهاتف
 document.getElementById('phone').addEventListener('focus', function() {
     const savedPhone = getPhoneFromStorage();
     if (savedPhone && !this.value) {
@@ -544,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePrice();
     resetFileInfo();
     autoLoadUserOrders();
-    initMobileFileUpload(); // ✨ تهيئة تحسينات الهواتف
+    initWebViewFileUpload(); // ✨ التهيئة الجديدة للويب فيو
 });
 
 // تحديث تلقائي للطلبات كل دقيقة
