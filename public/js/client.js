@@ -25,99 +25,232 @@ let hasLamination = false;
 let isPdfFile = false;
 let copies = 1;
 
-// دالة بسيطة لتهيئة رفع الملفات
-function initFileUpload() {
+// الحل الجذري لرفع الملفات
+function initFileUploadSystem() {
+    console.log('🔧 بدء تهيئة نظام رفع الملفات...');
+    
+    // 1. إنشاء input file جديد ديناميكياً
+    const newFileInput = document.createElement('input');
+    newFileInput.type = 'file';
+    newFileInput.id = 'file';
+    newFileInput.name = 'file';
+    newFileInput.accept = '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png';
+    newFileInput.style.cssText = `
+        position: fixed;
+        top: -1000px;
+        left: -1000px;
+        opacity: 0;
+        pointer-events: none;
+    `;
+    
+    // استبدال الـ input القديم
+    if (fileInput && fileInput.parentNode) {
+        fileInput.parentNode.replaceChild(newFileInput, fileInput);
+    }
+    fileInput = newFileInput;
+    document.body.appendChild(fileInput);
+    
+    // 2. إضافة multiple event listeners لمنطقة الرفع
     const fileUploadArea = document.getElementById('fileUploadArea');
     
-    // إزالة أي event listeners سابقة
-    fileUploadArea.replaceWith(fileUploadArea.cloneNode(true));
-    fileInput = document.getElementById('file');
+    // إزالة جميع الـ event listeners السابقة
+    const newFileUploadArea = fileUploadArea.cloneNode(true);
+    fileUploadArea.parentNode.replaceChild(newFileUploadArea, fileUploadArea);
     
-    // إعادة تعيين event listeners بسيطة
-    const newFileUploadArea = document.getElementById('fileUploadArea');
+    // 3. إضافة جميع أنواع الأحداث الممكنة
+    const events = ['click', 'touchend', 'mousedown', 'pointerdown'];
     
-    // حدث النقر الأساسي
-    newFileUploadArea.addEventListener('click', function(e) {
-        e.preventDefault();
+    events.forEach(eventType => {
+        newFileUploadArea.addEventListener(eventType, function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log(`🎯 ${eventType}: تم النقر على منطقة الرفع`);
+            
+            // محاولة فتح ملف بعد فترة بسيطة
+            setTimeout(() => {
+                fileInput.click();
+            }, 100);
+        }, { passive: false });
+    });
+    
+    // 4. معالجة اختيار الملف
+    fileInput.addEventListener('change', function(e) {
+        console.log('📁 حدث change triggered');
+        
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            console.log('✅ تم اختيار ملف:', file.name, 'الحجم:', file.size);
+            handleFileSelection(file);
+        } else {
+            console.log('❌ لم يتم اختيار ملف');
+        }
+    });
+    
+    // 5. إضافة زر طوارئ
+    createEmergencyUploadButton();
+    
+    console.log('✅ تم تهيئة نظام رفع الملفات');
+}
+
+// إنشاء زر طوارئ
+function createEmergencyUploadButton() {
+    // إزالة الزر القديم إذا موجود
+    const oldBtn = document.getElementById('emergencyUploadBtn');
+    if (oldBtn) oldBtn.remove();
+    
+    const emergencyBtn = document.createElement('button');
+    emergencyBtn.type = 'button';
+    emergencyBtn.id = 'emergencyUploadBtn';
+    emergencyBtn.innerHTML = `
+       
+        اضغط هنا إذا لم يعمل رفع الملف العادي
+        <small>سيحاول فتح نافذة اختيار الملفات</small>
+    `;
+    emergencyBtn.style.cssText = `
+        background: green;
+        color: white;
+        border: none;
+        padding: 20px;
+        border-radius: 15px;
+        font-size: 18px;
+        margin: 20px 0;
+        cursor: pointer;
+        width: 100%;
+        font-weight: bold;
+        
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        animation: pulse 2s infinite;
+    `;
+    
+    // أحداث متعددة للزر
+    emergencyBtn.addEventListener('click', function() {
+        console.log('🆘 زر الطوارئ: محاولة فتح الملفات');
         fileInput.click();
     });
     
-    // حدث تغيير الملف
-    fileInput.addEventListener('change', function(e) {
-        if (this.files && this.files[0]) {
-            handleFileSelection(this.files[0]);
-        }
+    emergencyBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        console.log('🆘 زر الطوارئ: لمس');
+        fileInput.click();
     });
     
-    // تحسينات بسيطة للهواتف
-    newFileUploadArea.addEventListener('touchstart', function() {
-        this.style.background = '#667eea15';
-    }, { passive: true });
+    // إضافة CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(style);
     
-    newFileUploadArea.addEventListener('touchend', function() {
-        this.style.background = '#f8f9ff';
-    }, { passive: true });
+    // إضافة الزر إلى الصفحة
+    const fileSection = document.querySelector('.form-section:nth-child(2)');
+    fileSection.appendChild(emergencyBtn);
 }
 
-// دالة معالجة اختيار الملف
+// معالجة اختيار الملف
 async function handleFileSelection(file) {
-    if (!file) return;
+    try {
+        console.log('🔄 بدء معالجة الملف...');
+        
+        // التحقق من حجم الملف
+        if (file.size > 60 * 1024 * 1024) {
+            alert('❌ حجم الملف كبير جداً! الحد الأقصى 60MB');
+            resetFileInfo();
+            return;
+        }
+        
+        // عرض اسم الملف
+        selectedFileName.textContent = file.name;
+        fileNameDisplay.style.display = 'flex';
+        
+        // إظهار تحميل
+        pageInfoElement.innerHTML = '<div style="color: #667eea; text-align: center;">جاري فحص الملف...</div>';
+        
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        console.log('📄 نوع الملف:', fileExt);
+        
+        if (fileExt === 'pdf') {
+            try {
+                pageCount = await getPdfPageCount(file);
+                isPdfFile = true;
+                pageInfoElement.textContent = `عدد الصفحات: ${pageCount}`;
+                updatePrice();
+                
+                const totalPrice = calculateTotalPrice();
+                alert(`✅ تم تحميل ملف PDF\n📄 الصفحات: ${pageCount}\n💰 السعر: ${totalPrice.toLocaleString()} ليرة`);
+                
+            } catch (error) {
+                console.error('خطأ في حساب الصفحات:', error);
+                // تقدير الصفحات
+                pageCount = Math.max(1, Math.floor(file.size / 50000));
+                isPdfFile = true;
+                pageInfoElement.textContent = `عدد الصفحات (تقديري): ${pageCount}`;
+                updatePrice();
+                alert(`✅ تم تحميل ملف PDF\n📄 الصفحات (تقديري): ${pageCount}`);
+            }
+        } else {
+            isPdfFile = false;
+            pageCount = 0;
+            pageInfoElement.textContent = 'نوع الملف: ' + getFileTypeName(fileExt);
+            updatePrice();
+            alert(`✅ تم تحميل الملف\n📞 سيتم إعلامك بالسعر عبر واتساب`);
+        }
+        
+        console.log('✅ اكتملت معالجة الملف');
+        
+    } catch (error) {
+        console.error('❌ خطأ في معالجة الملف:', error);
+        alert('❌ حدث خطأ في معالجة الملف');
+    }
+}
+
+// دالة حساب السعر
+function calculateTotalPrice() {
+    if (!isPdfFile) return 0;
     
-    console.log('تم اختيار ملف:', file.name, 'الحجم:', file.size);
-    
-    // عرض اسم الملف
-    selectedFileName.textContent = file.name;
-    fileNameDisplay.style.display = 'flex';
-    
-    // إظهار تحميل
-    pageInfoElement.innerHTML = '<div style="color: #667eea; text-align: center;">جاري فحص الملف...</div>';
-    
-    // التحقق من حجم الملف
-    if (file.size > 60 * 1024 * 1024) {
-        alert('❌ حجم الملف كبير جداً! الحد الأقصى 60MB');
-        resetFileInfo();
+    const pricePerSide = paperSize === 'A4' ? PRICES.A4 : PRICES.A5;
+    const sides = pageCount * 2;
+    const printingPrice = sides * pricePerSide;
+    const laminationPrice = hasLamination ? PRICES.LAMINATION : 0;
+    const pricePerCopy = printingPrice + laminationPrice;
+    return pricePerCopy * copies;
+}
+
+// تحديث السعر
+function updatePrice() {
+    if (!isPdfFile) {
+        priceInfoElement.style.display = 'none';
+        whatsappInfoElement.style.display = 'block';
         return;
     }
 
-    const fileExt = file.name.split('.').pop().toLowerCase();
-    console.log('امتداد الملف:', fileExt);
+    const totalPrice = calculateTotalPrice();
+    pageCountElement.textContent = pageCount;
+    totalPriceElement.textContent = totalPrice.toLocaleString() + ' ل.س';
     
-    if (fileExt === 'pdf') {
-        try {
-            pageCount = await getPdfPageCount(file);
-            isPdfFile = true;
-            
-            pageInfoElement.textContent = `عدد الصفحات: ${pageCount}`;
-            updatePrice();
-            
-            const pricePerSide = paperSize === 'A4' ? PRICES.A4 : PRICES.A5;
-            const pricePerCopy = (pageCount * 2 * pricePerSide) + (hasLamination ? PRICES.LAMINATION : 0);
-            const totalPrice = pricePerCopy * copies;
-            
-            let priceMessage = `✅ تم تحميل ملف PDF\n📄 الصفحات: ${pageCount}\n💰 السعر: ${totalPrice.toLocaleString()} ليرة`;
-            if (copies > 1) {
-                priceMessage += `\n📋 (${copies} نسخة)`;
-            }
-            
-            alert(priceMessage);
-            
-        } catch (error) {
-            console.error('خطأ في حساب الصفحات:', error);
-            // تقدير الصفحات كحل بديل
-            pageCount = Math.max(1, Math.floor(file.size / 50000)); // تقدير أفضل
-            isPdfFile = true;
-            pageInfoElement.textContent = `عدد الصفحات (تقديري): ${pageCount}`;
-            updatePrice();
-            
-            alert(`⚠️ تم تحميل ملف PDF\n📄 الصفحات (تقديري): ${pageCount}`);
+    if (copies > 1) {
+        const copiesInfo = document.getElementById('copiesInfo') || document.createElement('div');
+        copiesInfo.id = 'copiesInfo';
+        copiesInfo.style.cssText = 'font-size: 0.9em; color: #666; margin-top: 5px;';
+        copiesInfo.innerHTML = `(${copies} نسخة)`;
+        
+        if (!totalPriceElement.parentNode.querySelector('#copiesInfo')) {
+            totalPriceElement.parentNode.appendChild(copiesInfo);
         }
     } else {
-        isPdfFile = false;
-        pageCount = 0;
-        pageInfoElement.textContent = 'نوع الملف: ' + getFileTypeName(fileExt);
-        updatePrice();
-        alert(`✅ تم تحميل الملف\n📞 سيتم إعلامك بالسعر عبر واتساب`);
+        const copiesInfo = document.getElementById('copiesInfo');
+        if (copiesInfo) copiesInfo.remove();
     }
+    
+    priceInfoElement.style.display = 'flex';
+    whatsappInfoElement.style.display = 'none';
 }
 
 // دالة التحقق من رقم الهاتف
@@ -143,49 +276,13 @@ function clearPhoneFromStorage() {
     localStorage.removeItem('userPhone');
 }
 
-// تحميل الطلبات تلقائياً عند فتح الصفحة
+// تحميل الطلبات تلقائياً
 function autoLoadUserOrders() {
     const savedPhone = getPhoneFromStorage();
     if (savedPhone && validatePhone(savedPhone)) {
         document.getElementById('phone').value = savedPhone;
         loadUserOrders();
     }
-}
-
-// تحديث السعر عند تغيير الإعدادات
-function updatePrice() {
-    if (!isPdfFile) {
-        priceInfoElement.style.display = 'none';
-        whatsappInfoElement.style.display = 'block';
-        return;
-    }
-
-    const pricePerSide = paperSize === 'A4' ? PRICES.A4 : PRICES.A5;
-    const sides = pageCount * 2;
-    const printingPrice = sides * pricePerSide;
-    const laminationPrice = hasLamination ? PRICES.LAMINATION : 0;
-    const pricePerCopy = printingPrice + laminationPrice;
-    const totalPrice = pricePerCopy * copies;
-
-    pageCountElement.textContent = pageCount;
-    totalPriceElement.textContent = totalPrice.toLocaleString() + ' ل.س';
-    
-    if (copies > 1) {
-        const copiesInfo = document.getElementById('copiesInfo') || document.createElement('div');
-        copiesInfo.id = 'copiesInfo';
-        copiesInfo.style.cssText = 'font-size: 0.9em; color: #666; margin-top: 5px;';
-        copiesInfo.innerHTML = `(${copies} نسخة × ${pricePerCopy.toLocaleString()} ل.س)`;
-        
-        if (!totalPriceElement.parentNode.querySelector('#copiesInfo')) {
-            totalPriceElement.parentNode.appendChild(copiesInfo);
-        }
-    } else {
-        const copiesInfo = document.getElementById('copiesInfo');
-        if (copiesInfo) copiesInfo.remove();
-    }
-    
-    priceInfoElement.style.display = 'flex';
-    whatsappInfoElement.style.display = 'none';
 }
 
 // استماع لتغيير عدد النسخ
@@ -197,14 +294,6 @@ if (copiesInput) {
         e.target.value = copies;
         updatePrice();
     });
-    
-    copiesInput.addEventListener('blur', (e) => {
-        if (!e.target.value || e.target.value < 1) {
-            e.target.value = 1;
-            copies = 1;
-            updatePrice();
-        }
-    });
 }
 
 // استماع لتغيير حجم الورق ونوع الطباعة
@@ -212,7 +301,6 @@ document.querySelectorAll('.option-btn[data-value]').forEach(btn => {
     btn.addEventListener('click', (e) => {
         const parent = e.target.closest('.option-buttons');
         parent.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
-        
         e.target.classList.add('active');
         
         if (e.target.closest('.spec-content').querySelector('h4').textContent === 'حجم الورق') {
@@ -222,7 +310,6 @@ document.querySelectorAll('.option-btn[data-value]').forEach(btn => {
             colorType = e.target.getAttribute('data-value');
             document.getElementById('colorType').value = colorType;
         }
-        
         updatePrice();
     });
 });
@@ -238,7 +325,6 @@ async function getPdfPageCount(file) {
     return new Promise((resolve, reject) => {
         const fileURL = URL.createObjectURL(file);
         
-        // استخدام الإعدادات الأساسية
         pdfjsLib.getDocument(fileURL).promise
             .then(pdf => {
                 const numPages = pdf.numPages;
@@ -252,21 +338,14 @@ async function getPdfPageCount(file) {
     });
 }
 
-// دالة مساعدة للحصول على اسم نوع الملف
 function getFileTypeName(ext) {
     const types = {
-        'doc': 'Word',
-        'docx': 'Word',
-        'xls': 'Excel', 
-        'xlsx': 'Excel',
-        'jpg': 'صورة',
-        'jpeg': 'صورة',
-        'png': 'صورة'
+        'doc': 'Word', 'docx': 'Word', 'xls': 'Excel', 'xlsx': 'Excel',
+        'jpg': 'صورة', 'jpeg': 'صورة', 'png': 'صورة'
     };
     return types[ext] || ext.toUpperCase();
 }
 
-// إعادة تعيين معلومات الملف
 function resetFileInfo() {
     pageCount = 0;
     isPdfFile = false;
@@ -276,43 +355,26 @@ function resetFileInfo() {
     fileNameDisplay.style.display = 'none';
     copies = 1;
     if (copiesInput) copiesInput.value = 1;
-    const copiesInfo = document.getElementById('copiesInfo');
-    if (copiesInfo) copiesInfo.remove();
-    
-    // إعادة تعيين input file
-    if (fileInput) {
-        fileInput.value = '';
-    }
 }
 
-// دالة جلب الطلبات من السيرفر
+// دالة جلب الطلبات
 async function loadUserOrders() {
     const phone = document.getElementById('phone').value.trim();
-    
-    if (!phone || !validatePhone(phone)) {
-        return;
-    }
+    if (!phone || !validatePhone(phone)) return;
     
     try {
         const response = await fetch(`/api/orders/phone/${phone}`);
-        
-        if (!response.ok) {
-            throw new Error(`خطأ في السيرفر: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            displayUserOrders(result.orders);
-        } else {
-            console.error('Error from server:', result.message);
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                displayUserOrders(result.orders);
+            }
         }
     } catch (error) {
         console.error('Error loading orders:', error);
     }
 }
 
-// دالة عرض طلبات المستخدم
 function displayUserOrders(orders) {
     const ordersList = document.getElementById('userOrdersList');
     const tracker = document.getElementById('ordersTracker');
@@ -339,7 +401,7 @@ function displayUserOrders(orders) {
                 </div>
             </div>
             <div class="order-details">
-                <p><i class="fas fa-file"></i> <strong>الملف:</strong> ${order.fileName || '---'}</p>
+                <p><i class="fas fa-file"></i> <strong>الملف:</strong></p>
                 <p><i class="fas fa-cog"></i> <strong>المواصفات:</strong> ${order.paperSize} - ${order.colorType} ${order.lamination ? '- مع التسليك' : ''}</p>
                 <p><i class="fas fa-file-alt"></i> <strong>الصفحات:</strong> ${order.pageCount} صفحة</p>
                 <p><i class="fas fa-copy"></i> <strong>النسخ:</strong> ${order.copies || 1} نسخة</p>
@@ -352,31 +414,7 @@ function displayUserOrders(orders) {
     if (tracker) tracker.style.display = 'block';
 }
 
-// دالة تحديث الطلبات
-function refreshOrders() {
-    const refreshBtn = document.querySelector('.refresh-btn');
-    if (refreshBtn) {
-        refreshBtn.style.transform = 'rotate(180deg)';
-        setTimeout(() => {
-            refreshBtn.style.transform = 'rotate(0)';
-        }, 500);
-    }
-    loadUserOrders();
-}
-
-// دالة تسجيل خروج المستخدم
-function logoutUser() {
-    if (confirm('هل تريد تسجيل الخروج؟ سيتم حذف رقم هاتفك من هذا الجهاز.')) {
-        clearPhoneFromStorage();
-        document.getElementById('phone').value = '';
-        const tracker = document.getElementById('ordersTracker');
-        if (tracker) tracker.style.display = 'none';
-        resetFileInfo();
-        alert('✅ تم تسجيل الخروج بنجاح');
-    }
-}
-
-// معالجة إرسال النموذج
+// إرسال النموذج
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -390,7 +428,7 @@ form.addEventListener('submit', async (e) => {
     }
 
     if (!validatePhone(phone)) {
-        alert('❌ رقم الهاتف غير صحيح! يجب أن يبدأ بـ 09 ويتكون من 10 أرقام');
+        alert('❌ رقم الهاتف غير صحيح!');
         return;
     }
 
@@ -398,7 +436,7 @@ form.addEventListener('submit', async (e) => {
 
     const submitBtn = form.querySelector('.submit-btn');
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إرسال الطلب...';
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
     submitBtn.disabled = true;
 
     try {
@@ -420,69 +458,48 @@ form.addEventListener('submit', async (e) => {
         const result = await response.json();
 
         if (response.ok && result.success) {
-            let message = `✅ تم إرسال طلبك بنجاح!\n📦 رقم طلبك: ${result.orderId}`;
-            
-            if (isPdfFile) {
-                const pricePerSide = paperSize === 'A4' ? PRICES.A4 : PRICES.A5;
-                const pricePerCopy = (pageCount * 2 * pricePerSide) + (hasLamination ? PRICES.LAMINATION : 0);
-                const totalPrice = pricePerCopy * copies;
-                
-                message += `\n💰 السعر النهائي: ${totalPrice.toLocaleString()} ليرة`;
-                if (copies > 1) {
-                    message += `\n📋 (${copies} نسخة)`;
-                }
-            } else {
-                message += `\n📞 سيتم اعلامك بالسعر عبر واتساب`;
-            }
-
-            alert(message);
-            
-            // إعادة تعيين النموذج
+            alert(`✅ تم إرسال طلبك بنجاح!\n📦 رقم الطلب: ${result.orderId}`);
             document.getElementById('name').value = '';
             resetFileInfo();
-            
-            // تحميل الطلبات الجديدة
             setTimeout(loadUserOrders, 1000);
         } else {
-            throw new Error(result.message || 'حدث خطأ أثناء الإرسال');
+            throw new Error(result.message || 'خطأ في الإرسال');
         }
 
     } catch (error) {
-        alert('❌ حدث خطأ أثناء إرسال الطلب: ' + error.message);
+        alert('❌ حدث خطأ: ' + error.message);
     } finally {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }
 });
 
-// عند تغيير رقم الهاتف
-document.getElementById('phone').addEventListener('blur', function() {
-    const phone = this.value.trim();
-    if (validatePhone(phone)) {
-        savePhoneToStorage(phone);
-        loadUserOrders();
-    }
-});
-
-// عند التركيز على حقل الهاتف
-document.getElementById('phone').addEventListener('focus', function() {
-    const savedPhone = getPhoneFromStorage();
-    if (savedPhone && !this.value) {
-        this.value = savedPhone;
-    }
-});
-
-// التهيئة عند تحميل الصفحة
+// التهيئة الرئيسية
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('جاري تهيئة النظام...');
+    console.log('🚀 بدء تحميل النظام...');
     updatePrice();
     resetFileInfo();
     autoLoadUserOrders();
-    initFileUpload(); // تهيئة بسيطة لرفع الملفات
-    console.log('تم تهيئة النظام بنجاح');
+    initFileUploadSystem(); // ✅ هذا هو الحل الرئيسي
+    console.log('✅ تم تحميل النظام بنجاح');
 });
 
-// تحديث تلقائي للطلبات كل دقيقة
+// تحديث تلقائي
 setInterval(() => {
     loadUserOrders();
 }, 60000);
+
+// إضافة دالة لتحديث الطلبات وتسجيل الخروج (إذا كانت موجودة في واجهتك)
+function refreshOrders() {
+    loadUserOrders();
+}
+
+function logoutUser() {
+    if (confirm('هل تريد تسجيل الخروج؟')) {
+        clearPhoneFromStorage();
+        document.getElementById('phone').value = '';
+        document.getElementById('ordersTracker').style.display = 'none';
+        resetFileInfo();
+        alert('✅ تم تسجيل الخروج');
+    }
+}
