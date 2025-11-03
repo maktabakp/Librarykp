@@ -8,7 +8,7 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // استيراد وتفعيل نظام التنظيف إذا كان موجوداً
 try {

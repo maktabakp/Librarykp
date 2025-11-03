@@ -1,18 +1,14 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const { initializeDatabase } = require('./config/database');
 
 const app = express();
-
-// تهيئة نظام التخزين
-const db = initializeDatabase();
 
 // middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Routes
 const ordersRouter = require('./routes/orders');
 const adminRouter = require('./routes/admin');
@@ -34,12 +30,7 @@ app.get('/admin/dashboard', (req, res) => {
 });
 
 // مسار تحميل الملفات
-app.use('/downloads', express.static(path.join(__dirname, 'uploads')));
-
-// route احتياطي للتوافق مع الكود القديم
-app.post('/api/upload', (req, res) => {
-    res.redirect(307, '/api/orders/upload');
-});
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // معالجة الأخطاء
 app.use((err, req, res, next) => {

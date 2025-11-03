@@ -139,7 +139,24 @@
                                     <input type="hidden" name="colorType" value="ملون" id="colorType">
                                 </div>
                             </div>
-
+                            <!-- أضف هذا في قسم "مواصفات الطباعة" -->
+                            <div class="spec-card">
+                                <div class="spec-icon">
+                                    <i class="fas fa-copy"></i>
+                                </div>
+                                <div class="spec-content">
+                                    <h4>عدد النسخ</h4>
+                                    <div class="form-group">
+                                        <input type="number" id="copies" name="copies" 
+                                            min="1" max="100" value="1" 
+                                            class="modern-input" 
+                                            style="text-align: center; max-width: 120px;">
+                                        <small style="display: block; margin-top: 5px; color: #666;">
+                                            عدد النسخ المطلوبة من الملف
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- إضافات -->
                             <div class="spec-card">
                                 <div class="spec-icon">
@@ -207,6 +224,35 @@
                 </form>
             </div>
         </main>
+
+        <!-- قسم متابعة الطلبات -->
+<div class="orders-tracker" id="ordersTracker" style="display: none;">
+    <div class="tracker-header">
+        <div class="tracker-title">
+            <i class="fas fa-tasks"></i>
+            <h3>متابعة طلباتك</h3>
+        </div>
+        <div class="tracker-actions">
+            <button onclick="refreshOrders()" class="refresh-btn" title="تحديث">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button onclick="logoutUser()" class="logout-user-btn" title="تسجيل الخروج">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </div>
+    <div id="userOrdersList" class="orders-list">
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <div>جاري تحميل الطلبات...</div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
 
         <!-- الفوتر -->
         <footer class="premium-footer">

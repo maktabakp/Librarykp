@@ -29,8 +29,7 @@ async function loadOrders() {
     }
 }
 
-// عرض الطلبات في الجدول
-// عرض الطلبات في بطاقات متراصة
+// عرض الطلبات في لوحة التحكم
 function displayOrders() {
     if (!orders || orders.length === 0) {
         ordersContainer.innerHTML = `
@@ -47,13 +46,11 @@ function displayOrders() {
         <div class="orders-list">
             ${orders.map(order => `
                 <div class="order-item">
-                    <!-- رأس البطاقة -->
                     <div class="order-header">
                         <div class="order-id">#${order.id}</div>
                         <div class="order-date">${formatDate(new Date(order.timestamp))}</div>
                     </div>
                     
-                    <!-- معلومات العميل -->
                     <div class="customer-info">
                         <div class="customer-name">
                             <i class="fas fa-user"></i>
@@ -65,15 +62,17 @@ function displayOrders() {
                         </div>
                     </div>
                     
-                    <!-- الملف -->
                     <div class="file-info">
                         <a href="/api/orders/download/${order.id}" class="file-link" target="_blank">
                             <i class="fas fa-file-download"></i>
-                            اضغط لتنزيل الملف
+                            تنزيل الملف 
                         </a>
+                        <div class="file-size" style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                            <i class="fas fa-hdd"></i>
+                            الحجم: ${(order.fileSize / 1024 / 1024).toFixed(2)} MB
+                        </div>
                     </div>
                     
-                    <!-- المواصفات -->
                     <div class="specs-info">
                         <div class="specs-grid">
                             <div class="spec-item">
@@ -83,6 +82,10 @@ function displayOrders() {
                             <div class="spec-item">
                                 <i class="fas fa-palette"></i>
                                 <span>${order.colorType}</span>
+                            </div>
+                            <div class="spec-item">
+                                <i class="fas fa-copy"></i>
+                                <span>${order.copies || 1} نسخة</span>
                             </div>
                             ${order.lamination ? `
                                 <div class="spec-item">
@@ -94,26 +97,38 @@ function displayOrders() {
                                 <i class="fas fa-file"></i>
                                 <span>${order.pageCount || 0} صفحة</span>
                             </div>
+                            <div class="spec-item">
+                                <i class="fas fa-file-alt"></i>
+                                <span>${order.isPdf ? 'PDF' : getFileType(order.fileName)}</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- السعر والحالة -->
                     <div class="order-footer">
                         <div class="price-info">
                             ${order.isPdf ? 
                                 `${order.totalPrice ? order.totalPrice.toLocaleString() : '0'} ل.س` : 
                                 `<div class="whatsapp-notice">
                                     <i class="fab fa-whatsapp"></i>
-                                    سيتم التواصل لتحديد السعر
+                                    يحتاج تحديد سعر
                                 </div>`
                             }
+                            ${order.copies > 1 ? `
+                                <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                                    (${order.copies} نسخة × ${order.totalPrice / order.copies} ل.س للنسخة)
+                                </div>
+                            ` : ''}
                         </div>
                         
                         <div class="status-actions">
-                            <span class="status-badge ${order.needsWhatsappPrice ? 'status-pending' : 'status-completed'}">
-                                <i class="fas ${order.needsWhatsappPrice ? 'fa-clock' : 'fa-check'}"></i>
-                                ${order.needsWhatsappPrice ? 'بانتظار التواصل' : 'مكتمل'}
+                            <span class="status-badge ${order.status === 'ready' ? 'status-ready' : 'status-printing'}">
+                                <i class="fas ${order.status === 'ready' ? 'fa-check' : 'fa-spinner'}"></i>
+                                ${order.status === 'ready' ? 'جاهز' : 'قيد الطباعة'}
                             </span>
+                            <button class="status-btn" onclick="updateOrderStatus(${order.id}, '${order.status === 'ready' ? 'printing' : 'ready'}')">
+                                <i class="fas ${order.status === 'ready' ? 'fa-undo' : 'fa-check'}"></i>
+                                ${order.status === 'ready' ? 'إعادة للطباعة' : 'تم التجهيز'}
+                            </button>
                             <button class="delete-btn" onclick="deleteOrder(${order.id})">
                                 <i class="fas fa-trash"></i>
                                 حذف
@@ -127,6 +142,44 @@ function displayOrders() {
     
     ordersContainer.innerHTML = ordersHTML;
 }
+
+// دالة مساعدة للحصول على نوع الملف
+function getFileType(fileName) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    const types = {
+        'doc': 'Word',
+        'docx': 'Word',
+        'xls': 'Excel',
+        'xlsx': 'Excel',
+        'jpg': 'صورة',
+        'jpeg': 'صورة',
+        'png': 'صورة'
+    };
+    return types[ext] || ext.toUpperCase();
+}
+
+// دالة تحديث حالة الطلب
+async function updateOrderStatus(orderId, newStatus) {
+    try {
+        const response = await fetch(`/api/orders/${orderId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+            showMessage('تم تحديث حالة الطلب بنجاح');
+            loadOrders();
+        } else {
+            throw new Error('فشل في تحديث الحالة');
+        }
+    } catch (error) {
+        showError('فشل في تحديث الحالة: ' + error.message);
+    }
+}
+
 // تحديث الإحصائيات
 function updateStats() {
     const totalOrders = orders.length;
@@ -134,12 +187,12 @@ function updateStats() {
     const todayOrders = orders.filter(order => 
         new Date(order.timestamp).toDateString() === today
     ).length;
-    const totalRevenue = orders.reduce((sum, order) => sum + order.totalPrice, 0);
-    const pendingOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+    const pendingOrders = orders.filter(order => order.status === 'printing').length;
 
     totalOrdersElement.textContent = totalOrders;
     todayOrdersElement.textContent = todayOrders;
-    totalRevenueElement.textContent = totalRevenue.toLocaleString();
+    totalRevenueElement.textContent = totalRevenue.toLocaleString() + ' ل.س';
     pendingOrdersElement.textContent = pendingOrders;
 }
 
@@ -176,7 +229,12 @@ logoutBtn.addEventListener('click', () => {
 
 // وظائف المساعدة
 function showLoading() {
-    ordersContainer.innerHTML = '<div class="loading">جاري تحميل الطلبات...</div>';
+    ordersContainer.innerHTML = `
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <div>جاري تحميل الطلبات...</div>
+        </div>
+    `;
 }
 
 function showError(message) {
@@ -230,4 +288,9 @@ function formatDate(date) {
 // تحميل البيانات عند فتح الصفحة
 document.addEventListener('DOMContentLoaded', () => {
     loadOrders();
+    
+    // تحديث تلقائي كل 30 ثانية
+    setInterval(() => {
+        loadOrders();
+    }, 30000);
 });

@@ -702,3 +702,316 @@ body {
         font-size: 0.9em;
     }
 }
+/* قسم متابعة الطلبات */
+.orders-tracker {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin-top: 30px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.tracker-header {
+    background: var(--gradient);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tracker-header h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.refresh-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(180deg);
+}
+
+.orders-list {
+    padding: 20px;
+}
+
+.order-track-item {
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+    padding: 20px;
+    margin-bottom: 15px;
+    border-right: 4px solid #ffc107;
+    transition: all 0.3s ease;
+}
+
+.order-track-item.ready {
+    border-right-color: #28a745;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.order-id {
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 1.1em;
+}
+
+.order-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.status-printing {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-ready {
+    background: #d4edda;
+    color: #155724;
+}
+
+.order-details {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.order-details p {
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.no-orders-track {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7f8c8d;
+}
+
+.no-orders-track i {
+    font-size: 3em;
+    margin-bottom: 15px;
+    color: #bdc3c7;
+}
+.status-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+}
+
+.status-btn:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+/* قسم متابعة الطلبات */
+.orders-tracker {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin-top: 30px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.tracker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--gradient);
+    color: white;
+    padding: 20px;
+}
+
+.tracker-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tracker-title h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.tracker-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.refresh-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(180deg);
+}
+
+.logout-user-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.logout-user-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.orders-list {
+    padding: 20px;
+}
+
+.order-track-item {
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+    padding: 20px;
+    margin-bottom: 15px;
+    border-right: 4px solid #ffc107;
+    transition: all 0.3s ease;
+}
+
+.order-track-item.ready {
+    border-right-color: #28a745;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.order-id {
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 1.1em;
+}
+
+.order-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.status-printing {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-ready {
+    background: #d4edda;
+    color: #155724;
+}
+
+.order-details {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.order-details p {
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.no-orders-track {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7f8c8d;
+}
+
+.no-orders-track i {
+    font-size: 3em;
+    margin-bottom: 15px;
+    color: #bdc3c7;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7f8c8d;
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* تحسينات للشاشات الصغيرة */
+@media (max-width: 480px) {
+    .tracker-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .tracker-actions {
+        align-self: stretch;
+        justify-content: center;
+    }
+    
+    .order-track-item {
+        padding: 15px;
+    }
+}

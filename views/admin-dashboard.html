@@ -384,6 +384,54 @@
                 grid-template-columns: repeat(4, 1fr);
             }
         }
+        /* تحسينات لعرض عدد النسخ */
+.file-size {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.specs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.spec-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    padding: 5px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 6px;
+}
+
+.spec-item i {
+    color: var(--primary-color);
+    width: 16px;
+    text-align: center;
+}
+
+/* تحسينات للعرض على الشاشات الصغيرة */
+@media (max-width: 768px) {
+    .specs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .specs-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .spec-item {
+        justify-content: flex-start;
+    }
+}
     </style>
 </head>
 <body>
