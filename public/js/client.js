@@ -25,6 +25,54 @@ let hasLamination = false;
 let isPdfFile = false;
 let copies = 1;
 
+// =============================================
+// 🔧 قسم إصلاحات WebView - يبدأ أولاً
+// =============================================
+
+// كشف إذا كان في WebView
+function isWebView() {
+    return /WebView|Android.*AppleWebKit|wv/.test(navigator.userAgent) || 
+           window.hasOwnProperty('webkit') || 
+           window.hasOwnProperty('Android');
+}
+
+// تطبيق إصلاحات WebView
+function applyWebViewFixes() {
+    if (!isWebView()) return;
+    
+    console.log('🔧 تطبيق إصلاحات WebView المتقدمة');
+    const fileInput = document.getElementById('file');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    
+    if (!fileInput || !fileUploadArea) return;
+    
+    // 1. إزالة جميع القيود
+    fileInput.setAttribute('accept', '*/*');
+    fileInput.removeAttribute('capture');
+    fileInput.removeAttribute('multiple');
+    
+    // 2. حل متقدم لـ WebView
+    fileUploadArea.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('🖱️ تم النقر على منطقة الرفع في WebView');
+        
+        // محاولات متعددة لضمان العمل
+        setTimeout(() => fileInput.click(), 50);
+        setTimeout(() => fileInput.click(), 200);
+        setTimeout(() => fileInput.click(), 500);
+    });
+    
+    // 3. إضافة مؤشر لـ WebView
+    fileInput.setAttribute('data-webview', 'true');
+    fileUploadArea.setAttribute('data-webview', 'true');
+}
+
+// =============================================
+// 🔧 نهاية قسم إصلاحات WebView
+// =============================================
+
 // دالة التحقق من رقم الهاتف
 function validatePhone(phone) {
     const phoneRegex = /^09\d{8}$/;
@@ -160,10 +208,12 @@ async function getPdfPageCount(file) {
     });
 }
 
-// معالجة رفع الملف
+// معالجة رفع الملف - مع دعم WebView
 fileInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
+        console.log('📁 تم اختيار ملف:', file.name, 'الحجم:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+        
         // عرض اسم الملف
         selectedFileName.textContent = file.name;
         fileNameDisplay.style.display = 'flex';
@@ -217,7 +267,7 @@ fileInput.addEventListener('change', async (e) => {
             pageCount = 0;
             pageInfoElement.textContent = 'نوع الملف: ' + getFileTypeName(fileExt);
             updatePrice();
-            alert(`✅ تم تحميل الملف\n📞 سيتم  اعلامك بالسعر عبر واتساب خلال دقائق 
+            alert(`✅ تم تحميل الملف\n📞 سيتم اعلامك بالسعر عبر واتساب خلال دقائق 
                  \n💡 لا يمكن تحديد السعر بدقة لأن الملف ليس بصيغة pdf
                 \n سعر وجه الورقة الواحد : 100 ليرة سورية
                 `);
@@ -382,7 +432,7 @@ form.addEventListener('submit', async (e) => {
         formData.append('colorType', colorType);
         formData.append('lamination', hasLamination);
         formData.append('clientPageCount', pageCount);
-        formData.append('copies', copies); // ✨ إرسال عدد النسخ
+        formData.append('copies', copies);
         
         const response = await fetch('/api/orders/upload', {
             method: 'POST',
@@ -450,13 +500,24 @@ document.getElementById('phone').addEventListener('focus', function() {
     }
 });
 
-// تحميل أولي
+// =============================================
+// 🚀 تهيئة التطبيق - مع إصلاحات WebView أولاً
+// =============================================
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 بدء تحميل التطبيق...');
+    
+    // 1. تطبيق إصلاحات WebView أولاً
+    applyWebViewFixes();
+    
+    // 2. تهيئة باقي التطبيق
     updatePrice();
     resetFileInfo();
     autoLoadUserOrders();
+    
+    console.log('✅ تم تحميل التطبيق بنجاح');
 });
 
+// التحديث التلقائي
 setInterval(() => {
-    loadUserOrders()
+    loadUserOrders();
 }, 60000);

@@ -1015,3 +1015,25 @@ body {
         padding: 15px;
     }
 }
+/* تحسينات إضافية لـ WebView */
+.file-upload-area[data-webview="true"] {
+    border: 2px solid #2c5aa0 !important;
+    background: rgba(44, 90, 160, 0.05) !important;
+}
+
+.file-input[data-webview="true"] {
+    font-size: 16px !important; /* منع التكبير في iOS */
+    min-height: 44px !important; /* حجم مناسب للمس */
+}
+
+/* تحسين اللمس في WebView */
+@media (max-width: 768px) {
+    .file-upload-area {
+        min-height: 120px !important;
+    }
+    
+    .option-btn {
+        min-height: 50px !important;
+        padding: 15px !important;
+    }
+}
