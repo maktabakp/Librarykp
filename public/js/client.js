@@ -7,7 +7,7 @@ const PRICES = {
 
 // عناصر DOM
 const form = document.getElementById('printingForm');
-const fileInput = document.getElementById('file');
+let fileInput = document.getElementById('file');
 const fileNameDisplay = document.getElementById('fileNameDisplay');
 const selectedFileName = document.getElementById('selectedFileName');
 const pageCountElement = document.getElementById('pageCount');
@@ -25,91 +25,45 @@ let hasLamination = false;
 let isPdfFile = false;
 let copies = 1;
 
-// كشف WebView وتطبيقات الهاتف
-function isMobileApp() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    return userAgent.includes('wv') || // Android WebView
-           userAgent.includes('webview') || 
-           userAgent.includes('mobile') ||
-           /android|iphone|ipad|ipod/.test(userAgent);
-}
-
-// حل خاص لـ WebView - إنشاء input file ديناميكي
-function createWebViewFileInput() {
-    // إزالة الـ event listeners القديمة
-    const newFileInput = document.createElement('input');
-    newFileInput.type = 'file';
-    newFileInput.id = 'file';
-    newFileInput.name = 'file';
-    newFileInput.accept = '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png';
-    newFileInput.style.display = 'none';
-    
-    // استبدال الـ input القديم
-    const oldFileInput = document.getElementById('file');
-    if (oldFileInput) {
-        oldFileInput.parentNode.replaceChild(newFileInput, oldFileInput);
-    }
-    
-    return newFileInput;
-}
-
-// تهيئة رفع الملفات لـ WebView
-function initWebViewFileUpload() {
+// دالة بسيطة لتهيئة رفع الملفات
+function initFileUpload() {
     const fileUploadArea = document.getElementById('fileUploadArea');
     
-    // إعادة إنشاء input file
-    const fileInput = createWebViewFileInput();
+    // إزالة أي event listeners سابقة
+    fileUploadArea.replaceWith(fileUploadArea.cloneNode(true));
+    fileInput = document.getElementById('file');
     
-    // إضافة رسالة مساعدة للويب فيو
-    if (isMobileApp()) {
-        const helpText = document.createElement('div');
-        helpText.className = 'webview-help';
-        helpText.innerHTML = `
-            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 10px; margin-top: 10px; text-align: center;">
-                <i class="fas fa-info-circle" style="color: #856404;"></i>
-                <small style="color: #856404;">
-                    في بعض التطبيقات، قد تحتاج إلى اختيار "المستندات" أو "الملفات" بدلاً من الكاميرا
-                </small>
-            </div>
-        `;
-        fileUploadArea.parentNode.insertBefore(helpText, fileUploadArea.nextSibling);
-    }
+    // إعادة تعيين event listeners بسيطة
+    const newFileUploadArea = document.getElementById('fileUploadArea');
     
-    // تحسين event listeners للويب فيو
-    fileUploadArea.addEventListener('click', function(e) {
+    // حدث النقر الأساسي
+    newFileUploadArea.addEventListener('click', function(e) {
         e.preventDefault();
-        e.stopPropagation();
-        
-        // محاكاة click على input file
-        setTimeout(() => {
-            fileInput.click();
-        }, 100);
+        fileInput.click();
     });
     
-    // معالجة اختيار الملف
+    // حدث تغيير الملف
     fileInput.addEventListener('change', function(e) {
         if (this.files && this.files[0]) {
             handleFileSelection(this.files[0]);
         }
     });
     
-    // تحسينات اللمس للهواتف
-    fileUploadArea.addEventListener('touchstart', function(e) {
+    // تحسينات بسيطة للهواتف
+    newFileUploadArea.addEventListener('touchstart', function() {
         this.style.background = '#667eea15';
-        this.style.borderColor = '#4c63af';
     }, { passive: true });
     
-    fileUploadArea.addEventListener('touchend', function(e) {
+    newFileUploadArea.addEventListener('touchend', function() {
         this.style.background = '#f8f9ff';
-        this.style.borderColor = '#667eea';
     }, { passive: true });
-    
-    return fileInput;
 }
 
 // دالة معالجة اختيار الملف
 async function handleFileSelection(file) {
     if (!file) return;
+    
+    console.log('تم اختيار ملف:', file.name, 'الحجم:', file.size);
     
     // عرض اسم الملف
     selectedFileName.textContent = file.name;
@@ -118,13 +72,15 @@ async function handleFileSelection(file) {
     // إظهار تحميل
     pageInfoElement.innerHTML = '<div style="color: #667eea; text-align: center;">جاري فحص الملف...</div>';
     
+    // التحقق من حجم الملف
     if (file.size > 60 * 1024 * 1024) {
-        showMobileAlert('❌ حجم الملف كبير جداً! الحد الأقصى 60MB');
+        alert('❌ حجم الملف كبير جداً! الحد الأقصى 60MB');
         resetFileInfo();
         return;
     }
 
     const fileExt = file.name.split('.').pop().toLowerCase();
+    console.log('امتداد الملف:', fileExt);
     
     if (fileExt === 'pdf') {
         try {
@@ -143,29 +99,25 @@ async function handleFileSelection(file) {
                 priceMessage += `\n📋 (${copies} نسخة)`;
             }
             
-            showMobileAlert(priceMessage);
+            alert(priceMessage);
             
         } catch (error) {
             console.error('خطأ في حساب الصفحات:', error);
-            pageCount = Math.max(1, Math.floor(file.size / 100000));
+            // تقدير الصفحات كحل بديل
+            pageCount = Math.max(1, Math.floor(file.size / 50000)); // تقدير أفضل
             isPdfFile = true;
             pageInfoElement.textContent = `عدد الصفحات (تقديري): ${pageCount}`;
             updatePrice();
             
-            showMobileAlert(`⚠️ تم تحميل ملف PDF\n📄 الصفحات (تقديري): ${pageCount}`);
+            alert(`⚠️ تم تحميل ملف PDF\n📄 الصفحات (تقديري): ${pageCount}`);
         }
     } else {
         isPdfFile = false;
         pageCount = 0;
         pageInfoElement.textContent = 'نوع الملف: ' + getFileTypeName(fileExt);
         updatePrice();
-        showMobileAlert(`✅ تم تحميل الملف\n📞 سيتم إعلامك بالسعر عبر واتساب`);
+        alert(`✅ تم تحميل الملف\n📞 سيتم إعلامك بالسعر عبر واتساب`);
     }
-}
-
-// دالة لعرض التنبيهات
-function showMobileAlert(message) {
-    alert(message);
 }
 
 // دالة التحقق من رقم الهاتف
@@ -286,12 +238,8 @@ async function getPdfPageCount(file) {
     return new Promise((resolve, reject) => {
         const fileURL = URL.createObjectURL(file);
         
-        pdfjsLib.getDocument({
-            url: fileURL,
-            disableFontFace: true,
-            disableStream: true,
-            disableAutoFetch: true
-        }).promise
+        // استخدام الإعدادات الأساسية
+        pdfjsLib.getDocument(fileURL).promise
             .then(pdf => {
                 const numPages = pdf.numPages;
                 URL.revokeObjectURL(fileURL);
@@ -330,6 +278,11 @@ function resetFileInfo() {
     if (copiesInput) copiesInput.value = 1;
     const copiesInfo = document.getElementById('copiesInfo');
     if (copiesInfo) copiesInfo.remove();
+    
+    // إعادة تعيين input file
+    if (fileInput) {
+        fileInput.value = '';
+    }
 }
 
 // دالة جلب الطلبات من السيرفر
@@ -386,7 +339,7 @@ function displayUserOrders(orders) {
                 </div>
             </div>
             <div class="order-details">
-                <p><i class="fas fa-file"></i> <strong>ملفك:</strong></p>
+                <p><i class="fas fa-file"></i> <strong>الملف:</strong> ${order.fileName || '---'}</p>
                 <p><i class="fas fa-cog"></i> <strong>المواصفات:</strong> ${order.paperSize} - ${order.colorType} ${order.lamination ? '- مع التسليك' : ''}</p>
                 <p><i class="fas fa-file-alt"></i> <strong>الصفحات:</strong> ${order.pageCount} صفحة</p>
                 <p><i class="fas fa-copy"></i> <strong>النسخ:</strong> ${order.copies || 1} نسخة</p>
@@ -416,7 +369,8 @@ function logoutUser() {
     if (confirm('هل تريد تسجيل الخروج؟ سيتم حذف رقم هاتفك من هذا الجهاز.')) {
         clearPhoneFromStorage();
         document.getElementById('phone').value = '';
-        document.getElementById('ordersTracker').style.display = 'none';
+        const tracker = document.getElementById('ordersTracker');
+        if (tracker) tracker.style.display = 'none';
         resetFileInfo();
         alert('✅ تم تسجيل الخروج بنجاح');
     }
@@ -428,16 +382,15 @@ form.addEventListener('submit', async (e) => {
     
     const name = document.getElementById('name').value.trim();
     const phone = document.getElementById('phone').value.trim();
-    const fileInput = document.getElementById('file');
     const file = fileInput.files[0];
 
     if (!name || !phone || !file) {
-        showMobileAlert('❌ يرجى ملء جميع الحقول المطلوبة');
+        alert('❌ يرجى ملء جميع الحقول المطلوبة');
         return;
     }
 
     if (!validatePhone(phone)) {
-        showMobileAlert('❌ رقم الهاتف غير صحيح! يجب أن يبدأ بـ 09 ويتكون من 10 أرقام');
+        alert('❌ رقم الهاتف غير صحيح! يجب أن يبدأ بـ 09 ويتكون من 10 أرقام');
         return;
     }
 
@@ -482,19 +435,20 @@ form.addEventListener('submit', async (e) => {
                 message += `\n📞 سيتم اعلامك بالسعر عبر واتساب`;
             }
 
-            showMobileAlert(message);
+            alert(message);
             
+            // إعادة تعيين النموذج
             document.getElementById('name').value = '';
-            fileInput.value = '';
             resetFileInfo();
             
+            // تحميل الطلبات الجديدة
             setTimeout(loadUserOrders, 1000);
         } else {
             throw new Error(result.message || 'حدث خطأ أثناء الإرسال');
         }
 
     } catch (error) {
-        showMobileAlert('❌ حدث خطأ أثناء إرسال الطلب: ' + error.message);
+        alert('❌ حدث خطأ أثناء إرسال الطلب: ' + error.message);
     } finally {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
@@ -520,10 +474,12 @@ document.getElementById('phone').addEventListener('focus', function() {
 
 // التهيئة عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('جاري تهيئة النظام...');
     updatePrice();
     resetFileInfo();
     autoLoadUserOrders();
-    initWebViewFileUpload(); // ✨ التهيئة الجديدة للويب فيو
+    initFileUpload(); // تهيئة بسيطة لرفع الملفات
+    console.log('تم تهيئة النظام بنجاح');
 });
 
 // تحديث تلقائي للطلبات كل دقيقة
